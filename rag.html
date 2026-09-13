@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Simulator</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f6f7fb;
+        color: #17181c;
+    }
+
+    button {
+        font: inherit;
+    }
+
+    .app {
+        min-height: 100vh;
+    }
+
+    /* HEADER */
+
+    header {
+        background: #ffffff;
+        border-bottom: 1px solid #e7e8ec;
+        padding: 22px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .logo {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: #111827;
+        color: white;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 17px;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: 19px;
+        letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+        font-size: 12px;
+        color: #777b85;
+        margin-top: 2px;
+    }
+
+    .reset-btn {
+        border: 1px solid #dddfe5;
+        background: white;
+        border-radius: 9px;
+        padding: 9px 14px;
+        cursor: pointer;
+        color: #454852;
+    }
+
+    .reset-btn:hover {
+        background: #f5f5f7;
+    }
+
+    /* LAYOUT */
+
+    .main {
+        max-width: 1450px;
+        margin: 0 auto;
+        padding: 30px 30px 60px;
+    }
+
+    .intro {
+        margin-bottom: 28px;
+    }
+
+    .intro h2 {
+        font-size: 28px;
+        letter-spacing: -0.8px;
+        margin: 0 0 7px;
+    }
+
+    .intro p {
+        margin: 0;
+        color: #666a74;
+        max-width: 850px;
+        line-height: 1.55;
+    }
+
+    /* PIPELINE */
+
+    .pipeline-wrapper {
+        overflow-x: auto;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+    .pipeline {
+        min-width: 1180px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .stage {
+        position: relative;
+        width: 145px;
+        min-height: 112px;
+        background: white;
+        border: 1px solid #e3e5ea;
+        border-radius: 14px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .stage:hover {
+        transform: translateY(-2px);
+        border-color: #b7bac4;
+        box-shadow: 0 8px 22px rgba(0,0,0,.06);
+    }
+
+    .stage.active {
+        border-color: #111827;
+        box-shadow: 0 0 0 2px #111827;
+    }
+
+    .stage-number {
+        font-size: 10px;
+        font-weight: 700;
+        color: #9296a0;
+        margin-bottom: 8px;
+    }
+
+    .stage-icon {
+        font-size: 22px;
+        margin-bottom: 7px;
+    }
+
+    .stage-title {
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .stage-description {
+        font-size: 10px;
+        color: #81848d;
+        margin-top: 4px;
+        line-height: 1.3;
+    }
+
+    .arrow {
+        color: #a3a6ae;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    /* WORKSPACE */
+
+    .workspace {
+        display: grid;
+        grid-template-columns: 1.05fr .95fr;
+        gap: 22px;
+    }
+
+    .card {
+        background: white;
+        border: 1px solid #e3e5ea;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 17px 20px;
+        border-bottom: 1px solid #ececf0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .card-header span {
+        font-size: 11px;
+        color: #888c95;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* DOCUMENTS */
+
+    .document {
+        border: 1px solid #e2e4e9;
+        border-radius: 11px;
+        padding: 13px;
+        margin-bottom: 10px;
+        background: #fbfbfc;
+    }
+
+    .document-title {
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .document-text {
+        font-size: 11px;
+        color: #6b6f79;
+        line-height: 1.5;
+    }
+
+    .document-tag {
+        display: inline-block;
+        font-size: 9px;
+        background: #eeeeF2;
+        color: #686c75;
+        padding: 3px 7px;
+        border-radius: 20px;
+        margin-top: 8px;
+    }
+
+    /* QUERY */
+
+    textarea {
+        width: 100%;
+        border: 1px solid #dfe1e7;
+        border-radius: 11px;
+        padding: 13px;
+        font-family: inherit;
+        font-size: 13px;
+        resize: vertical;
+        min-height: 90px;
+        outline: none;
+    }
+
+    textarea:focus {
+        border-color: #777b85;
+    }
+
+    .run-btn {
+        margin-top: 10px;
+        width: 100%;
+        border: 0;
+        border-radius: 10px;
+        padding: 12px;
+        background: #111827;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .run-btn:hover {
+        background: #252b38;
+    }
+
+    /* STAGE DETAILS */
+
+    .detail {
+        margin-top: 22px;
+    }
+
+    .detail-content {
+        min-height: 260px;
+    }
+
+    .stage-heading {
+        font-size: 20px;
+        font-weight: 750;
+        letter-spacing: -.4px;
+        margin-bottom: 6px;
+    }
+
+    .stage-explanation {
+        font-size: 13px;
+        color: #686c75;
+        line-height: 1.6;
+        max-width: 900px;
+        margin-bottom: 20px;
+    }
+
+    .data-box {
+        background: #10131a;
+        color: #e8eaf0;
+        border-radius: 11px;
+        padding: 15px;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 11px;
+        line-height: 1.65;
+        overflow-x: auto;
+        white-space: pre-wrap;
+    }
+
+    .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .8px;
+        font-weight: 750;
+        color: #8a8e98;
+        margin: 16px 0 7px;
+    }
+
+    /* CHUNKS */
+
+    .chunks {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .chunk {
+        border: 1px solid #e3e5ea;
+        border-radius: 10px;
+        padding: 12px;
+        background: #fafafd;
+    }
+
+    .chunk-id {
+        font-size: 9px;
+        font-weight: 800;
+        color: #858994;
+        margin-bottom: 6px;
+    }
+
+    .chunk p {
+        font-size: 10px;
+        line-height: 1.5;
+        margin: 0;
+        color: #555963;
+    }
+
+    .embedding {
+        margin-top: 8px;
+        font-family: monospace;
+        font-size: 9px;
+        color: #747883;
+    }
+
+    /* RETRIEVAL */
+
+    .result {
+        border: 1px solid #e0e2e7;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 9px;
+    }
+
+    .result-top {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .result-id {
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .score {
+        font-family: monospace;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .result p {
+        margin: 0;
+        font-size: 10px;
+        line-height: 1.5;
+        color: #60646e;
+    }
+
+    .bar {
+        height: 5px;
+        background: #e7e8ec;
+        border-radius: 5px;
+        margin-top: 9px;
+        overflow: hidden;
+    }
+
+    .bar-fill {
+        height: 100%;
+        background: #111827;
+        border-radius: 5px;
+    }
+
+    /* PROMPT */
+
+    .prompt {
+        background: #f7f7f9;
+        border: 1px solid #e3e4e8;
+        border-radius: 10px;
+        padding: 14px;
+        font-family: monospace;
+        font-size: 10px;
+        line-height: 1.65;
+        white-space: pre-wrap;
+    }
+
+    /* ANSWER */
+
+    .answer {
+        background: #f7f7f9;
+        border-radius: 12px;
+        padding: 17px;
+        font-size: 13px;
+        line-height: 1.65;
+    }
+
+    .citation {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        background: #e4e6eb;
+        padding: 2px 6px;
+        border-radius: 5px;
+        margin-left: 3px;
+    }
+
+    /* CONCEPT */
+
+    .concept-box {
+        margin-top: 20px;
+        border: 1px solid #dedfe5;
+        border-radius: 11px;
+        padding: 15px;
+        background: #fcfcfd;
+    }
+
+    .concept-box strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+    }
+
+    .concept-box p {
+        margin: 0;
+        color: #686c75;
+        font-size: 11px;
+        line-height: 1.55;
+    }
+
+    /* RESPONSIVE */
+
+    @media(max-width: 900px) {
+        header {
+            padding: 18px;
+        }
+
+        .main {
+            padding: 20px 15px;
+        }
+
+        .workspace {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+    <div class="brand">
+        <div class="logo">R</div>
+        <div>
+            <h1>RAG Simulator</h1>
+            <div class="subtitle">Retrieval-Augmented Generation — understand it by seeing it</div>
+        </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetSimulator()">Reset</button>
+</header>
+
+<main class="main">
+
+    <div class="intro">
+        <h2>How RAG actually works</h2>
+        <p>
+            Follow the information as it moves through the system.
+            Click any stage to inspect what is happening behind the scenes.
+        </p>
+    </div>
+
+    <!-- PIPELINE -->
+
+    <div class="pipeline-wrapper">
+        <div class="pipeline">
+
+            <div class="stage active" onclick="showStage(1)" id="stage1">
+                <div class="stage-number">01</div>
+                <div class="stage-icon">📄</div>
+                <div class="stage-title">Documents</div>
+                <div class="stage-description">Raw knowledge</div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="stage" onclick="showStage(2)" id="stage2">
+                <div class="stage-number">02</div>
+                <div class="stage-icon">✂️</div>
+                <div class="stage-title">Chunking</div>
+                <div class="stage-description">Break into pieces</div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="stage" onclick="showStage(3)" id="stage3">
+                <div class="stage-number">03</div>
+                <div class="stage-icon">🔢</div>
+                <div class="stage-title">Embeddings</div>
+                <div class="stage-description">Text → vectors</div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="stage" onclick="showStage(4)" id="stage4">
+                <div class="stage-number">04</div>
+                <div class="stage-icon">🗄️</div>
+                <div class="stage-title">Vector Store</div>
+                <div class="stage-description">Store + index</div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="stage" onclick="showStage(5)" id="stage5">
+                <div class="stage-number">05</div>
+                <div class="stage-icon">🔎</div>
+                <div class="stage-title">Query</div>
+                <div class="stage-description">User question</div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="stage" onclick="showStage(6)" id="stage6">
+                <div class="stage-number">06</div>
+                <div class="stage-icon">🎯</div>
+                <div class="stage-title">Retrieval</div>
+                <div class="stage-description">Find top-K</div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="stage" onclick="showStage(7)" id="stage7">
+                <div class="stage-number">07</div>
+                <div class="stage-icon">🧩</div>
+                <div class="stage-title">Augment</div>
+                <div class="stage-description">Query + context</div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="stage" onclick="showStage(8)" id="stage8">
+                <div class="stage-number">08</div>
+                <div class="stage-icon">🤖</div>
+                <div class="stage-title">LLM</div>
+                <div class="stage-description">Generate answer</div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- INPUT WORKSPACE -->
+
+    <div class="workspace">
+
+        <!-- DOCUMENTS -->
+
+        <div class="card">
+
+            <div class="card-header">
+                <h3>Knowledge base</h3>
+                <span>Input documents</span>
+            </div>
+
+            <div class="card-body">
+
+                <div class="document">
+                    <div class="document-title">Amazon Return Policy</div>
+
+                    <div class="document-text">
+                        Customers can return most items within 30 days of delivery.
+                        Some products may have different return windows.
+                        Items must generally be in their original condition.
+                    </div>
+
+                    <span class="document-tag">policy.pdf</span>
+                </div>
+
+                <div class="document">
+                    <div class="document-title">Prime Membership Benefits</div>
+
+                    <div class="document-text">
+                        Prime members receive free delivery on eligible products.
+                        Members can also access Prime Video, Prime Reading and
+                        other benefits depending on their market.
+                    </div>
+
+                    <span class="document-tag">prime-benefits.pdf</span>
+                </div>
+
+                <div class="document">
+                    <div class="document-title">Customer Support Guide</div>
+
+                    <div class="document-text">
+                        Customers can contact support through the website or mobile
+                        application. Support agents should verify the order number
+                        before discussing order-specific information.
+                    </div>
+
+                    <span class="document-tag">support-guide.pdf</span>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- QUERY -->
+
+        <div class="card">
+
+            <div class="card-header">
+                <h3>Ask the knowledge base</h3>
+                <span>Runtime query</span>
+            </div>
+
+            <div class="card-body">
+
+                <textarea id="query">Can I return an item after 25 days?</textarea>
+
+                <button class="run-btn" onclick="runRAG()">
+                    ▶ Run RAG pipeline
+                </button>
+
+                <div class="label">Your question becomes</div>
+
+                <div class="data-box" id="queryPreview">
+query embedding → [0.82, 0.14, 0.67, 0.31, ...]
+                </div>
+
+                <div class="concept-box">
+                    <strong>Important distinction</strong>
+                    <p>
+                        The LLM does NOT search your documents itself.
+                        Retrieval happens before the LLM receives the prompt.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- DETAIL PANEL -->
+
+    <div class="card detail">
+
+        <div class="card-header">
+            <h3 id="detailTitle">Stage 1 — Documents</h3>
+            <span id="detailStatus">Inspecting pipeline</span>
+        </div>
+
+        <div class="card-body detail-content" id="detailContent">
+
+        </div>
+
+    </div>
+
+</main>
+
+</div>
+
+
+<script>
+
+const chunks = [
+    {
+        id: "chunk_001",
+        text: "Customers can return most items within 30 days of delivery.",
+        embedding: "[0.82, 0.21, 0.64, 0.17, 0.91, ...]"
+    },
+    {
+        id: "chunk_002",
+        text: "Some products may have different return windows.",
+        embedding: "[0.74, 0.32, 0.51, 0.22, 0.83, ...]"
+    },
+    {
+        id: "chunk_003",
+        text: "Items must generally be in their original condition.",
+        embedding: "[0.61, 0.18, 0.73, 0.42, 0.69, ...]"
+    },
+    {
+        id: "chunk_004",
+        text: "Prime members receive free delivery on eligible products.",
+        embedding: "[0.12, 0.82, 0.21, 0.74, 0.32, ...]"
+    },
+    {
+        id: "chunk_005",
+        text: "Members can also access Prime Video and Prime Reading.",
+        embedding: "[0.19, 0.77, 0.28, 0.69, 0.41, ...]"
+    },
+    {
+        id: "chunk_006",
+        text: "Customers can contact support through the website or mobile application.",
+        embedding: "[0.41, 0.36, 0.82, 0.24, 0.55, ...]"
+    }
+];
+
+
+let retrieved = [
+    {
+        id: "chunk_001",
+        score: 0.94,
+        text: "Customers can return most items within 30 days of delivery."
+    },
+    {
+        id: "chunk_002",
+        score: 0.81,
+        text: "Some products may have different return windows."
+    },
+    {
+        id: "chunk_003",
+        score: 0.56,
+        text: "Items must generally be in their original condition."
+    }
+];
+
+
+function showStage(stage) {
+
+    document.querySelectorAll(".stage").forEach(el => {
+        el.classList.remove("active");
+    });
+
+    document.getElementById("stage" + stage).classList.add("active");
+
+    const title = document.getElementById("detailTitle");
+    const content = document.getElementById("detailContent");
+
+    const stages = {
+
+        1: {
+            title: "Stage 1 — Documents",
+            html: `
+                <div class="stage-heading">Start with your knowledge</div>
+
+                <div class="stage-explanation">
+                    RAG starts with external information that you want the LLM
+                    to be able to use. These could be PDFs, webpages, databases,
+                    internal documentation, product catalogs, support articles, etc.
+                </div>
+
+                <div class="label">Raw input</div>
+
+                <div class="data-box">
+Amazon Return Policy
+
+Customers can return most items within 30 days of delivery.
+Some products may have different return windows.
+Items must generally be in their original condition.
+                </div>
+
+                <div class="concept-box">
+                    <strong>Why do we need this?</strong>
+                    <p>
+                        An LLM's pretrained knowledge is not automatically aware of
+                        your private or recently updated documents. RAG gives it
+                        relevant external context at query time.
+                    </p>
+                </div>
+            `
+        },
+
+        2: {
+            title: "Stage 2 — Chunking",
+            html: `
+                <div class="stage-heading">Break documents into smaller chunks</div>
+
+                <div class="stage-explanation">
+                    Large documents are usually split into smaller pieces.
+                    Chunking makes retrieval more precise because we can retrieve
+                    the specific section relevant to a question instead of an
+                    entire 50-page document.
+                </div>
+
+                <div class="label">Example chunks</div>
+
+                <div class="chunks">
+
+                    ${chunks.slice(0,3).map(c => `
+                        <div class="chunk">
+                            <div class="chunk-id">${c.id}</div>
+                            <p>${c.text}</p>
+                        </div>
+                    `).join("")}
+
+                </div>
+
+                <div class="concept-box">
+                    <strong>Chunking is NOT just cutting every document into equal pieces.</strong>
+                    <p>
+                        In real systems, chunk size, overlap, semantic boundaries,
+                        headings and document structure can all matter. Poor
+                        chunking can lead to poor retrieval even if everything
+                        else is working perfectly.
+                    </p>
+                </div>
+            `
+        },
+
+        3: {
+            title: "Stage 3 — Embeddings",
+            html: `
+                <div class="stage-heading">Convert text into numerical meaning</div>
+
+                <div class="stage-explanation">
+                    An embedding model converts each chunk into a vector — a list
+                    of numbers representing semantic information about the text.
+                    Similar meanings tend to have vectors that are close together.
+                </div>
+
+                <div class="chunks">
+
+                    ${chunks.slice(0,4).map(c => `
+                        <div class="chunk">
+                            <div class="chunk-id">${c.id}</div>
+                            <p>${c.text}</p>
+                            <div class="embedding">${c.embedding}</div>
+                        </div>
+                    `).join("")}
+
+                </div>
+
+                <div class="concept-box">
+                    <strong>Key correction to your original understanding</strong>
+                    <p>
+                        Embeddings happen to the document chunks during ingestion.
+                        Later, the user's query is ALSO embedded using the embedding
+                        model so the system can compare the query vector with the
+                        stored chunk vectors.
+                    </p>
+                </div>
+            `
+        },
+
+        4: {
+            title: "Stage 4 — Vector Store",
+            html: `
+                <div class="stage-heading">Store and index the vectors</div>
+
+                <div class="stage-explanation">
+                    The chunk text, metadata and its embedding are stored in a
+                    vector database or vector-enabled search system. The system
+                    creates an index that makes similarity search efficient.
+                </div>
+
+                <div class="label">Conceptual database record</div>
+
+                <div class="data-box">
+{
+  "id": "chunk_001",
+  "document": "Amazon Return Policy",
+  "text": "Customers can return most items within 30 days...",
+  "embedding": [0.82, 0.21, 0.64, 0.17, ...],
+  "metadata": {
+      "page": 1,
+      "section": "Returns"
+  }
+}
+                </div>
+
+                <div class="concept-box">
+                    <strong>The vector database is not the LLM.</strong>
+                    <p>
+                        It is primarily helping answer: "Which pieces of stored
+                        information are most relevant to this query?"
+                    </p>
+                </div>
+            `
+        },
+
+        5: {
+            title: "Stage 5 — User Query",
+            html: `
+                <div class="stage-heading">Now the user asks a question</div>
+
+                <div class="stage-explanation">
+                    At runtime, the user sends a natural-language question.
+                    The system turns this query into an embedding using the same
+                    embedding space used for the document chunks.
+                </div>
+
+                <div class="label">User query</div>
+
+                <div class="data-box" id="stageQuery">
+Can I return an item after 25 days?
+                </div>
+
+                <div class="label">Query embedding</div>
+
+                <div class="data-box">
+[0.84, 0.19, 0.63, 0.20, 0.88, ...]
+                </div>
+
+                <div class="concept-box">
+                    <strong>Notice the two embedding steps</strong>
+                    <p>
+                        1. Document chunks → embeddings → stored before the user asks.
+                        <br>
+                        2. User query → embedding → created at query time.
+                    </p>
+                </div>
+            `
+        },
+
+        6: {
+            title: "Stage 6 — Retrieval",
+            html: `
+                <div class="stage-heading">Find the most relevant chunks</div>
+
+                <div class="stage-explanation">
+                    The query vector is compared with stored vectors using a
+                    similarity measure such as cosine similarity. The system
+                    retrieves the top-K most relevant chunks.
+                </div>
+
+                <div class="label">Top-K = 3</div>
+
+                ${retrieved.map((r, i) => `
+                    <div class="result">
+                        <div class="result-top">
+                            <div class="result-id">#${i+1} — ${r.id}</div>
+                            <div class="score">${r.score.toFixed(2)} similarity</div>
+                        </div>
+
+                        <p>${r.text}</p>
+
+                        <div class="bar">
+                            <div class="bar-fill" style="width:${r.score*100}%"></div>
+                        </div>
+                    </div>
+                `).join("")}
+
+                <div class="concept-box">
+                    <strong>Top-K does not mean "the K best documents."</strong>
+                    <p>
+                        It means the K highest-ranked retrieved chunks according
+                        to the retrieval mechanism. Some systems add filtering,
+                        metadata constraints, hybrid search or reranking here.
+                    </p>
+                </div>
+            `
+        },
+
+        7: {
+            title: "Stage 7 — Augmentation",
+            html: `
+                <div class="stage-heading">Build the augmented prompt</div>
+
+                <div class="stage-explanation">
+                    This is where the "A" in RAG becomes visible. The retrieved
+                    context is inserted alongside the user's question and
+                    instructions before the request is sent to the LLM.
+                </div>
+
+                <div class="label">Augmented prompt</div>
+
+                <div class="prompt">SYSTEM:
+Answer the user's question using the provided context.
+If the answer is not supported by the context, say you don't know.
+
+CONTEXT:
+
+[chunk_001]
+Customers can return most items within 30 days of delivery.
+
+[chunk_002]
+Some products may have different return windows.
+
+[chunk_003]
+Items must generally be in their original condition.
+
+USER QUESTION:
+Can I return an item after 25 days?
+
+INSTRUCTION:
+Give a concise answer and cite the relevant source.</div>
+
+                <div class="concept-box">
+                    <strong>This is the critical mental model</strong>
+                    <p>
+                        RAG does not "teach" or retrain the LLM. Instead, relevant
+                        information is retrieved and placed into the prompt so
+                        the LLM can use that information when generating its answer.
+                    </p>
+                </div>
+            `
+        },
+
+        8: {
+            title: "Stage 8 — LLM Generation",
+            html: `
+                <div class="stage-heading">Generate the final answer</div>
+
+                <div class="stage-explanation">
+                    The LLM receives the user's question plus the retrieved context.
+                    It then generates an answer based on the information available
+                    in that prompt.
+                </div>
+
+                <div class="label">LLM output</div>
+
+                <div class="answer">
+                    Yes. Most items can be returned within 30 days of delivery,
+                    so 25 days falls within the standard return window.
+
+                    <span class="citation">chunk_001</span>
+
+                    <br><br>
+
+                    However, some products may have different return windows,
+                    so the specific product policy should also be checked.
+
+                    <span class="citation">chunk_002</span>
+                </div>
+
+                <div class="concept-box">
+                    <strong>And this is why RAG can reduce hallucination — but does not eliminate it.</strong>
+                    <p>
+                        The model has relevant evidence available, but it can still
+                        misunderstand, ignore, or incorrectly synthesize that evidence.
+                        Production RAG systems therefore often use evaluation,
+                        reranking, citations, confidence checks and guardrails.
+                    </p>
+                </div>
+            `
+        }
+    };
+
+    title.innerText = stages[stage].title;
+    content.innerHTML = stages[stage].html;
+}
+
+
+function runRAG() {
+
+    const query = document.getElementById("query").value.trim();
+
+    if (!query) {
+        alert("Enter a question first.");
+        return;
+    }
+
+    document.getElementById("queryPreview").innerText =
+        `Embedding query...\n\n"${query}"\n\n→ [0.84, 0.19, 0.63, 0.20, 0.88, ...]\n\n→ similarity search\n→ top-K chunks retrieved`;
+
+    /*
+        Make the pipeline feel interactive.
+    */
+
+    const stages = document.querySelectorAll(".stage");
+
+    stages.forEach((stage, index) => {
+
+        stage.classList.remove("active");
+
+        setTimeout(() => {
+
+            stages.forEach(s => s.classList.remove("active"));
+
+            stage.classList.add("active");
+
+            showStage(index + 1);
+
+        }, index * 450);
+
+    });
+
+    setTimeout(() => {
+
+        stages.forEach(s => s.classList.remove("active"));
+
+        stages[7].classList.add("active");
+
+        document.getElementById("detailTitle").innerText =
+            "Final result — RAG completed";
+
+        document.getElementById("detailContent").innerHTML = `
+
+            <div class="stage-heading">Grounded answer</div>
+
+            <div class="stage-explanation">
+                The complete RAG pipeline has now run for your question:
+                <strong>"${escapeHTML(query)}"</strong>
+            </div>
+
+            <div class="label">Retrieved context</div>
+
+            ${retrieved.slice(0,2).map(r => `
+                <div class="result">
+                    <div class="result-top">
+                        <div class="result-id">${r.id}</div>
+                        <div class="score">${r.score.toFixed(2)} similarity</div>
+                    </div>
+                    <p>${r.text}</p>
+                </div>
+            `).join("")}
+
+            <div class="label">Final LLM answer</div>
+
+            <div class="answer">
+                Based on the retrieved policy, yes — an item can generally be
+                returned after 25 days because the standard return window is
+                30 days.
+
+                <span class="citation">chunk_001</span>
+
+                <br><br>
+
+                Some products may have different return windows, so the specific
+                product's policy should be verified.
+
+                <span class="citation">chunk_002</span>
+            </div>
+
+            <div class="concept-box">
+                <strong>You've just simulated RAG.</strong>
+
+                <p>
+                    Documents → chunks → embeddings → vector store →
+                    query embedding → similarity search → top-K retrieval →
+                    augmented prompt → LLM → answer.
+                </p>
+            </div>
+        `;
+
+    }, stages.length * 450 + 300);
+}
+
+
+function resetSimulator() {
+
+    document.getElementById("query").value =
+        "Can I return an item after 25 days?";
+
+    document.getElementById("queryPreview").innerText =
+`query embedding → [0.82, 0.14, 0.67, 0.31, ...]`;
+
+    document.querySelectorAll(".stage").forEach(s => {
+        s.classList.remove("active");
+    });
+
+    document.getElementById("stage1").classList.add("active");
+
+    showStage(1);
+}
+
+
+function escapeHTML(str) {
+
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* Initial state */
+
+showStage(1);
+
+</script>
+
+</body>
+</html>
